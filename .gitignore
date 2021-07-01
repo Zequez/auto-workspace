@@ -8,5 +8,6 @@ elm-stuff
 
 src/pages
 apps/*
+.env
 
 auto-workspace.code-workspace

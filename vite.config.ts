@@ -1,48 +1,54 @@
+import * as dotenv from "dotenv";
 import fg from "fast-glob";
+import fs from "fs";
 import { parse, resolve } from "path";
+import YAML from "yaml";
 import { defineConfig } from "vite";
 import elmPlugin from "vite-plugin-elm";
 import WindiCSS from "vite-plugin-windicss";
 
-if (!process.env.APP) throw new Error("Gotta set the APP environment variable");
+dotenv.config();
+const APP = process.env.APP;
+if (!APP) throw new Error("Gotta set the APP environment variable");
 
-const appPath = resolve(__dirname, `apps/${process.env.APP}`);
-
-console.log(`[APP ${process.env.APP}`, appPath, "]");
-
+const appPath = resolve(__dirname, `apps/${APP}`);
+console.log(`[APP ${APP}`, appPath, "]\n");
 const inputs = matchGeneratedPages();
+logRecord("Detected pages", inputs);
+const appsIndex = requireYaml("./apps/index.yml");
+logRecord("Apps index", appsIndex);
 
-console.log("Detected pages:");
-Object.keys(inputs).forEach((k) => {
-  console.log("    ", k.padEnd(30, " "), inputs[k]);
-});
-console.log("");
+export default (mode) => {
+  console.log("MODE: ", mode, "\n");
 
-export default defineConfig({
-  root: resolve(__dirname, "src", "pages"),
-  clearScreen: false,
-  build: {
-    rollupOptions: {
-      input: inputs,
-    },
-  },
-  resolve: {
-    alias: {
-      "/@/": resolve(__dirname, "src") + "/",
-      "/@@/": appPath + "/",
-    },
-  },
-  plugins: [
-    elmPlugin(),
-    WindiCSS({
-      root: __dirname,
-      config: resolve(__dirname, "windi.config.js"),
-      onConfigResolved: (config) => {
-        console.log("WindiCSS Config", config);
+  return defineConfig({
+    root: resolve(__dirname, "src", "pages"),
+    clearScreen: false,
+    build: {
+      emptyOutDir: true,
+      rollupOptions: {
+        input: inputs,
       },
-    }),
-  ],
-});
+      outDir: `../../dist/${APP}`,
+    },
+    resolve: {
+      alias: {
+        "/@/": resolve(__dirname, "src") + "/",
+        "/@@/": appPath + "/",
+      },
+    },
+    plugins: [
+      elmPlugin(),
+      WindiCSS({
+        root: __dirname,
+        config: resolve(__dirname, "windi.config.js"),
+        onConfigResolved: (config) => {
+          console.log("WindiCSS Config", config, "\n");
+        },
+      }),
+    ],
+  });
+};
 
 function matchGeneratedPages(): Record<string, string> {
   let inputs: Record<string, string> = {};
@@ -55,4 +61,20 @@ function matchGeneratedPages(): Record<string, string> {
     inputs[pageKey] = page;
   });
   return inputs;
+}
+
+function logRecord(
+  title: string,
+  record: Record<string, string>,
+  pad: number = 30
+) {
+  console.log(`${title}:`);
+  Object.keys(record).forEach((k) => {
+    console.log("    ", k.padEnd(pad, " "), record[k]);
+  });
+  console.log("");
+}
+
+function requireYaml(file: string): Record<string, string> {
+  return YAML.parse(fs.readFileSync(resolve(__dirname, file)).toString());
 }
