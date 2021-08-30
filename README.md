@@ -22,6 +22,8 @@ app code.
 - PWA support
 - Fix the way WindiCSS works in which it accumulates classes until I restart the dev serve
 - Fix favicon not loading
+- Other deployment strategies such as IPFS
+- Automatically update DNS settings on Cloudflare
 
 ## Usage
 
@@ -53,6 +55,13 @@ name you want. Then configure the domain name on your registrar to point to Gith
 ```bash
 APP=AppName yarn deploy
 ```
+
+The mechanism is detailed on the `scripts/deploy.js` script.
+
+Ensures that the `/dist/<app_name>` directory has an initialized git repo
+on the `gh-pages` branch with the remote pointing the same as `apps/<app_name>` git repo.
+
+Then it makes a commit and pushes the changes.
 
 ### Default app
 
