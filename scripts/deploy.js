@@ -79,11 +79,20 @@ function initializeGitRepoReadyForFreshCommit() {
   runSure(`rm -rf ${tmpDistPath}`);
   runSure(`mkdir ${tmpDistPath}`);
   runSure(`cp -R ${appPath}/.git ${tmpDistPath}/.git`);
-  runSure(`git co gh-pages`, tmpDistPath);
-  runSure(
-    `git pull ${REMOTE} ${DIST_BRANCH}:${DIST_BRANCH} --force`,
-    tmpDistPath
-  );
+  // If branch gh-pages does not exist, create it
+  if (!run(`git show-ref -q --heads ${DIST_BRANCH}`, tmpDistPath)) {
+    runSure(`git co -b ${DIST_BRANCH}`, tmpDistPath);
+  }
+  runSure(`git co ${DIST_BRANCH}`, tmpDistPath);
+  console.log(`Pulling existing ${DIST_BRANCH} from remote`);
+  if (
+    !run(
+      `git pull ${REMOTE} ${DIST_BRANCH}:${DIST_BRANCH} --force`,
+      tmpDistPath
+    )
+  ) {
+    console.log(`Branch does not exist on remote`);
+  }
   runSure(`git rm -r .`, tmpDistPath);
   runSure(`cp -R ${tmpDistPath}/.git ${distPath}/.git`);
   runSure(`rm -rf ${tmpDistPath}`);

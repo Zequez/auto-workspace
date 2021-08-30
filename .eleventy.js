@@ -9,7 +9,7 @@ module.exports = function (config) {
   return {
     dir: {
       input: `apps/${APP}/pages`,
-      output: "src/pages",
+      output: `src/pages/${APP}`,
     },
   };
 };

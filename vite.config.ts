@@ -5,6 +5,7 @@ import { parse, resolve } from "path";
 import YAML from "yaml";
 import { defineConfig } from "vite";
 import elmPlugin from "vite-plugin-elm";
+import vue from "@vitejs/plugin-vue";
 import WindiCSS from "vite-plugin-windicss";
 
 dotenv.config();
@@ -22,14 +23,14 @@ export default (mode) => {
   console.log("MODE: ", mode, "\n");
 
   return defineConfig({
-    root: resolve(__dirname, "src", "pages"),
+    root: resolve(__dirname, "src", "pages", APP),
     clearScreen: false,
     build: {
       emptyOutDir: true,
       rollupOptions: {
         input: inputs,
       },
-      outDir: `../../dist/${APP}`,
+      outDir: `../../../dist/${APP}`,
     },
     resolve: {
       alias: {
@@ -38,6 +39,7 @@ export default (mode) => {
       },
     },
     plugins: [
+      vue(),
       elmPlugin(),
       WindiCSS({
         root: __dirname,
@@ -52,7 +54,7 @@ export default (mode) => {
 
 function matchGeneratedPages(): Record<string, string> {
   let inputs: Record<string, string> = {};
-  fg.sync(`src/pages/**/*.html`).map((page) => {
+  fg.sync(`src/pages/${APP}/**/*.html`).map((page) => {
     const dir = parse(page).dir;
     const pageKey = (dir.replace(appPath + "/pages", "") || "/main").replace(
       /^\//,
